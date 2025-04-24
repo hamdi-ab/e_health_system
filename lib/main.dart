@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'features/auth/Presentation/screens/login_screen.dart';
+import 'features/home/presentation/screens/home_screen.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -25,7 +28,7 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return const HomeScreen();
   }
 }
 
