@@ -12,6 +12,10 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  // 0 for "Patient", 1 for "Doctor"
+  int _selectedToggleIndex = 0;
   String? pickedFileName;
 
   Future<void> pickFile() async {
@@ -19,146 +23,218 @@ class _SignUpScreenState extends State<SignUpScreen> {
       type: FileType.custom,
       allowedExtensions: ['pdf', 'doc', 'docx'],
     );
-
     if (result != null) {
       final file = result.files.first;
       setState(() {
-        pickedFileName = file.name; // or use file.path for file operations
+        pickedFileName = file.name;
       });
-    } else {
-      // User canceled the picker
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Container(
+      backgroundColor: AppColors.surface,
+      body: Center(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white,
-                AppColors.primary.withOpacity(0.1),
-                AppColors.primary.withOpacity(0.2),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                _buildTitleSection(),
+                const SizedBox(height: 16),
+                _buildToggleSection(),
+                const SizedBox(height: 16),
+                _buildNameSection(),
+                const SizedBox(height: 16),
+                _buildEmailField(),
+                const SizedBox(height: 16),
+                // Show the file picker only if account type is "Doctor"
+                _selectedToggleIndex == 1
+                    ? _buildFilePickerSection()
+                    : const SizedBox.shrink(),
+                _buildPasswordField(),
+                const SizedBox(height: 16),
+                _buildConfirmPasswordField(),
+                const SizedBox(height: 10),
+                _buildTermsSection(),
+                const SizedBox(height: 20),
+                _buildSignUpButton(),
+                const SizedBox(height: 16),
+                _buildSignInSection(),
               ],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
             ),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              const Text(
-                'Sign Up For Doctor',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              _buildLabel('First Name'),
-              const CustomTextFormField(hintText: 'Your First Name'),
-              _buildLabel('Last Name'),
-              const CustomTextFormField(hintText: 'Your Last Name'),
-              _buildLabel('Email Address'),
-              const CustomTextFormField(hintText: 'Enter Your Email'),
-              _buildLabel('Submit Your CV'),
-              GestureDetector(
-                onTap: pickFile,
-                child: AbsorbPointer(
-                  child: TextFormField(
-                    decoration: InputDecoration(
-                      hintText: pickedFileName ?? 'Choose File',
-                      suffixIcon: const Icon(Icons.attach_file),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderSide:
-                            const BorderSide(color: Colors.grey, width: 1.5),
-                        borderRadius: BorderRadius.circular(16.0),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              _buildLabel('Password'),
-              const CustomTextFormField(
-                hintText: 'Enter your password',
-                obscureText: true,
-              ),
-              _buildLabel('Confirm Password'),
-              const CustomTextFormField(
-                hintText: 'Confirm your password',
-                obscureText: true,
-              ),
-              const SizedBox(height: 10),
-              const TermsCheckbox(),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20.0),
-                    ),
-                    padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  ),
-                  child: const Text(
-                    'Sign Up',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Already have an account?"),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const LoginScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Sign in',
-                      style: TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              )
-            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildLabel(String text) => Padding(
-        padding: const EdgeInsets.only(top: 12.0, bottom: 4.0),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 16,
+  /// Section: Title
+  Widget _buildTitleSection() {
+    return const Text(
+      'Sign Up',
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontWeight: FontWeight.w600,
+        fontSize: 36,
+        color: AppColors.textPrimary,
+      ),
+    );
+  }
+
+  /// Section: First Name and Last Name fields
+  Widget _buildNameSection() {
+    return const Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomTextFormField(hintText: 'First Name'),
+        SizedBox(height: 16),
+        CustomTextFormField(hintText: 'Last Name'),
+      ],
+    );
+  }
+
+  /// Section: Email input
+  Widget _buildEmailField() {
+    return const CustomTextFormField(hintText: 'Email Address');
+  }
+
+  /// Section: Toggle for account type ("Patient" vs "Doctor")
+  Widget _buildToggleSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30.0),
+      child: Toggle(
+        labels: const ['Patient', 'Doctor'],
+        selectedIndex: _selectedToggleIndex,
+        height: 55.0,
+        fontSize: 18.0,
+        borderRadius: 14.0,
+        onToggle: (index) {
+          setState(() {
+            _selectedToggleIndex = index;
+          });
+        },
+      ),
+    );
+  }
+
+  /// Section: File Picker (visible only for Doctors)
+  Widget _buildFilePickerSection() {
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: pickFile,
+          child: AbsorbPointer(
+            child: TextFormField(
+              decoration: InputDecoration(
+                hintText: pickedFileName ?? 'Choose File',
+                suffixIcon: const Icon(Icons.attach_file),
+                filled: true,
+                fillColor: Colors.white,
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 16.0,
+                  horizontal: 20.0,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide:
+                      const BorderSide(color: AppColors.primary, width: 2),
+                  borderRadius: BorderRadius.circular(12.0),
+                ),
+              ),
+            ),
           ),
         ),
-      );
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  /// Section: Password input
+  Widget _buildPasswordField() {
+    return const CustomTextFormField(
+      hintText: 'Enter password',
+      obscureText: true,
+    );
+  }
+
+  /// Section: Confirm password input
+  Widget _buildConfirmPasswordField() {
+    return const CustomTextFormField(
+      hintText: 'Confirm Password',
+      obscureText: true,
+    );
+  }
+
+  /// Section: Terms and Conditions checkbox
+  Widget _buildTermsSection() {
+    return const TermsCheckbox();
+  }
+
+  /// Section: Sign Up button
+  Widget _buildSignUpButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () {
+          if (_formKey.currentState!.validate()) {
+            // TODO: Implement sign-up logic.
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+        ),
+        child: const Text(
+          'Sign Up',
+          style: TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 20,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Section: Sign In navigation
+  Widget _buildSignInSection() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          "Already have an account?",
+          style: TextStyle(fontSize: 17),
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+            );
+          },
+          child: const Text(
+            'Sign in',
+            style: TextStyle(
+              fontSize: 17,
+              color: AppColors.primary,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
+/// Custom TextFormField for consistent styling
 class CustomTextFormField extends StatelessWidget {
   const CustomTextFormField({
     super.key,
@@ -174,23 +250,33 @@ class CustomTextFormField extends StatelessWidget {
     return TextFormField(
       obscureText: obscureText,
       decoration: InputDecoration(
-          hintText: hintText,
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
-          enabledBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.grey, width: 1.5),
-            borderRadius: BorderRadius.circular(16.0),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: const BorderSide(color: Colors.lightBlue, width: 3),
-            borderRadius: BorderRadius.circular(16.0),
-          )),
+        hintText: hintText,
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 16.0, horizontal: 20.0),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.0),
+        ),
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Please enter ${hintText.toLowerCase()}';
+        }
+        return null;
+      },
     );
   }
 }
 
+/// Checkbox widget for acceptance of Terms & Conditions
 class TermsCheckbox extends StatefulWidget {
   const TermsCheckbox({super.key});
 
@@ -212,7 +298,7 @@ class _TermsCheckboxState extends State<TermsCheckbox> {
               _agreed = value!;
             });
           },
-          activeColor: Colors.blue, // Customize check color
+          activeColor: Colors.blue,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(5),
           ),
@@ -220,7 +306,6 @@ class _TermsCheckboxState extends State<TermsCheckbox> {
         Expanded(
           child: GestureDetector(
             onTap: () {
-              // Optional: Show terms page or toggle checkbox on tap
               setState(() {
                 _agreed = !_agreed;
               });
@@ -228,10 +313,12 @@ class _TermsCheckboxState extends State<TermsCheckbox> {
             child: const Text.rich(
               TextSpan(
                 children: [
-                  TextSpan(text: 'I accept all'),
+                  TextSpan(
+                      text: 'I accept all ', style: TextStyle(fontSize: 17)),
                   TextSpan(
                     text: 'Terms and Conditions',
                     style: TextStyle(
+                      fontSize: 17,
                       color: AppColors.primary,
                       fontWeight: FontWeight.w500,
                     ),
@@ -242,6 +329,98 @@ class _TermsCheckboxState extends State<TermsCheckbox> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class Toggle extends StatefulWidget {
+  final List<String> labels;
+  final int selectedIndex;
+  final Function(int) onToggle;
+  final double height;
+  final double fontSize;
+  final double borderRadius;
+
+  const Toggle({
+    super.key,
+    required this.labels,
+    required this.selectedIndex,
+    required this.onToggle,
+    required this.height,
+    required this.fontSize,
+    required this.borderRadius,
+  });
+
+  @override
+  _ToggleState createState() => _ToggleState();
+}
+
+class _ToggleState extends State<Toggle> {
+  /// Computes the border radius for a segment when it is selected.
+  /// The idea is to have rounded outer corners but square (zero-radius) on the inner edge.
+  BorderRadius _getSegmentBorderRadius(int index) {
+    if (widget.labels.length == 1) {
+      return BorderRadius.circular(widget.borderRadius);
+    } else if (index == 0) {
+      // First segment: round only the left side.
+      return BorderRadius.only(
+        topLeft: Radius.circular(widget.borderRadius),
+        bottomLeft: Radius.circular(widget.borderRadius),
+      );
+    } else if (index == widget.labels.length - 1) {
+      // Last segment: round only the right side.
+      return BorderRadius.only(
+        topRight: Radius.circular(widget.borderRadius),
+        bottomRight: Radius.circular(widget.borderRadius),
+      );
+    } else {
+      // Middle segments have no rounded corners.
+      return BorderRadius.zero;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: widget.height,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300, // Background of the toggle control
+        border: Border.all(width: 1.5), // Adds outer border
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+      ),
+      child: Row(
+        children: List.generate(widget.labels.length, (index) {
+          final isSelected = index == widget.selectedIndex;
+          // Only the selected segment gets custom border radius.
+          final segmentBorderRadius =
+              isSelected ? _getSegmentBorderRadius(index) : BorderRadius.zero;
+
+          return Expanded(
+            child: GestureDetector(
+              onTap: () {
+                widget.onToggle(index); // Fire the toggle callback.
+              },
+              child: Container(
+                height: widget.height,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppColors.primary : AppColors.surface,
+                  borderRadius: segmentBorderRadius,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  widget.labels[index],
+                  style: TextStyle(
+                    fontSize: widget.fontSize,
+                    color: isSelected ? Colors.white : AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 }

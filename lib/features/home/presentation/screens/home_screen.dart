@@ -1,4 +1,8 @@
 import 'package:e_health_system/core/constants/app_colors.dart';
+import 'package:e_health_system/features/appointment/presentation/screens/appointment_patient_screen.dart';
+import 'package:e_health_system/features/auth/Presentation/screens/login_screen.dart';
+import 'package:e_health_system/features/auth/Presentation/screens/sign_up_screen.dart';
+import 'package:e_health_system/features/chat/presentation/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../widgets/doctor_home.dart';
@@ -21,8 +25,8 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     const PatientHome(),
     const DoctorHome(),
-    const Center(child: Text("Chat")),
-    const Center(child: Text("Blog")),
+    ChatScreen(),
+    const AppointmentPatientScreen(),
   ];
 
   @override
@@ -43,19 +47,84 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       drawer: Drawer(
         child: ListView(
+          // Remove any default padding.
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text(
-                "Menu",
-                style: TextStyle(color: Colors.white, fontSize: 24),
+            // Header Section
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor, // or your preferred color
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // User Avatar
+                  CircleAvatar(
+                    radius: 30,
+                    backgroundImage: AssetImage(
+                        'assets/images/user_avatar.png'), // Replace with your asset or use NetworkImage
+                  ),
+                  const SizedBox(height: 8),
+                  // User Name
+                  const Text(
+                    "User Name",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  // User Email
+                  const Text(
+                    "user.email@example.com",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
               ),
             ),
-            _drawerItem(Icons.home, "Home", 0),
-            _drawerItem(Icons.person, "Profile", 1),
-            _drawerItem(Icons.settings, "Settings", 2),
-            _drawerItem(Icons.logout, "Logout", 3),
+            // Menu Options
+            ListTile(
+              leading: const Icon(Icons.account_circle),
+              title: const Text("Profile"),
+              onTap: () {
+                // Navigate to Profile screen
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text("Settings"),
+              onTap: () {
+                // Navigate to Settings screen
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.info),
+              title: const Text("About Us"),
+              onTap: () {
+                // Navigate to About Us screen
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.help_outline),
+              title: const Text("FAQ"),
+              onTap: () {
+                // Navigate to FAQ screen
+              },
+            ),
+            // Extra spacing before Logout
+            const SizedBox(height: 20),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.exit_to_app),
+              title: const Text("Logout"),
+              onTap: () {
+                // Handle logout action
+              },
+            ),
           ],
         ),
       ),

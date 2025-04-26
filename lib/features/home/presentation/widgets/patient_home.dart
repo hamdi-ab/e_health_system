@@ -12,7 +12,7 @@ class PatientHome extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          _buildSearchBar(), // Search Bar
+          _buildSearchBar(context), // Search Bar
           const SizedBox(height: 16.0),
           _buildSpecialtySection(), // Specialty Categories
           const SizedBox(height: 16.0),
@@ -26,7 +26,7 @@ class PatientHome extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar() {
+  Widget _buildSearchBar(BuildContext context) {
     return TextField(
       decoration: InputDecoration(
         filled: true,
@@ -37,6 +37,7 @@ class PatientHome extends StatelessWidget {
           icon: const Icon(Icons.filter_list), // Filter icon
           onPressed: () {
             // Handle filter action
+            _showFilterModal(context);
           },
         ),
         border: OutlineInputBorder(
@@ -110,25 +111,28 @@ class PatientHome extends StatelessWidget {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            Row(
-              children: [
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: AppColors.primary, // Matches theme
-                  child: Icon(Icons.person, size: 40, color: Colors.white), // Icon color optimized
-                ),
-                const SizedBox(width: 12.0),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: AppColors.primary)),
-                      Text(specialty, style: const TextStyle(fontSize: 18, color: AppColors.textSecondary)),
-                    ],
+            Padding(
+              padding: const EdgeInsets.only(right: 22.0),
+              child: Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 30,
+                    backgroundColor: AppColors.primary, // Matches theme
+                    child: Icon(Icons.person, size: 40, color: Colors.white), // Icon color optimized
                   ),
-                ),
-                Text("★ $rating", style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: AppColors.primary)),
-              ],
+                  const SizedBox(width: 12.0),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: AppColors.primary)),
+                        Text(specialty, style: const TextStyle(fontSize: 18, color: AppColors.textSecondary)),
+                      ],
+                    ),
+                  ),
+                  Text("★ $rating", style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                ],
+              ),
             ),
             const SizedBox(height: 8.0),
             Row(
@@ -195,4 +199,102 @@ class PatientHome extends StatelessWidget {
   Widget _blogPost(String title) {
     return ExpandableBlogCard(title: title);
   }
+
+  void _showFilterModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
+      ),
+      builder: (BuildContext context) {
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Wrap(
+            children: [
+              // Header Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Filter Options",
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: AppColors.primary),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8.0),
+              // Clear Filters Option
+              TextButton(
+                onPressed: () {
+                  // Logic to reset filters goes here.
+                },
+                child: const Text("Clear All", style: TextStyle(color: AppColors.accent)),
+              ),
+              const Divider(),
+              // Filter Options Section
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  "Specialty",
+                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600, color: AppColors.primary),
+                ),
+              ),
+              Wrap(
+                spacing: 8.0,
+                runSpacing: 8.0,
+                children: [
+                  // Example filter chip. This can be a ChoiceChip or FilterChip.
+                  FilterChip(
+                    label: const Text("Cardiologist"),
+                    selected: false,
+                    onSelected: (isSelected) {
+                      // Update selection state.
+                    },
+                    selectedColor: AppColors.primaryLight,
+                    backgroundColor: AppColors.surface,
+                  ),
+                  FilterChip(
+                    label: const Text("Dentist"),
+                    selected: false,
+                    onSelected: (isSelected) {},
+                    selectedColor: AppColors.primaryLight,
+                    backgroundColor: AppColors.surface,
+                  ),
+                  // Add more chips as needed...
+                ],
+              ),
+              const SizedBox(height: 16.0),
+              // Other filter categories (e.g., Location, Rating) can be added here.
+              // Footer: Apply Button
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Apply filter changes and dismiss the bottom sheet.
+                    Navigator.of(context).pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                  ),
+                  child: const Text("Apply Filters", style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 }
