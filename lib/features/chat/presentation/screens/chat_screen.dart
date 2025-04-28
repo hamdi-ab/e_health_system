@@ -56,29 +56,6 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-  /// Builds the App Bar with the "Chat" title and a notifications icon.
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.background,
-      elevation: 0,
-      centerTitle: true,
-      title: const Text(
-        "Chat",
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications, color: AppColors.primary),
-          onPressed: () {
-            // TODO: Handle notifications action.
-          },
-        )
-      ],
-    );
-  }
 
   /// Builds the search bar with a magnifying glass icon and matching theming.
   Widget _buildSearchBar() {

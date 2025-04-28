@@ -34,7 +34,7 @@ class PatientHome extends StatelessWidget {
         hintText: "Search doctors by name, specialty…",
         prefixIcon: const Icon(Icons.search),
         suffixIcon: IconButton(
-          icon: const Icon(Icons.filter_list), // Filter icon
+          icon: const Icon(Icons.tune), // Filter icon
           onPressed: () {
             // Handle filter action
             _showFilterModal(context);
@@ -130,7 +130,7 @@ class PatientHome extends StatelessWidget {
                       ],
                     ),
                   ),
-                  Text("★ $rating", style: const TextStyle(fontSize: 16.0, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                  Text("★ $rating", style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Colors.amber)),
                 ],
               ),
             ),

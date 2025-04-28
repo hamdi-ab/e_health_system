@@ -1,10 +1,12 @@
 import 'package:e_health_system/core/constants/app_colors.dart';
-import 'package:e_health_system/features/appointment/presentation/screens/appointment_patient_screen.dart';
+import 'package:e_health_system/features/appointment/presentation/screens/patients_appointment_screen.dart';
+import 'package:e_health_system/features/appointment/presentation/screens/doctors_appointment_screen.dart';
 import 'package:e_health_system/features/auth/Presentation/screens/login_screen.dart';
 import 'package:e_health_system/features/auth/Presentation/screens/sign_up_screen.dart';
 import 'package:e_health_system/features/chat/presentation/screens/chat_screen.dart';
 import 'package:flutter/material.dart';
 
+import '../../../blog/presentation/screens/blog_screen.dart';
 import '../widgets/doctor_home.dart';
 import '../widgets/patient_home.dart';
 
@@ -24,9 +26,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const PatientHome(),
-    const DoctorHome(),
-    ChatScreen(),
-    const AppointmentPatientScreen(),
+    const BlogScreen(isDoctor: true,),
+    const DoctorAppointmentScreen(),
+    const PatientsAppointmentScreen(),
   ];
 
   @override
@@ -38,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
             style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: AppColors.primary)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_none_outlined),
+            icon: const Icon(Icons.notifications),
             onPressed: () {
               // Handle notifications
             },
@@ -55,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
               decoration: BoxDecoration(
                 color: Theme.of(context).primaryColor, // or your preferred color
               ),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // User Avatar
@@ -64,9 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     backgroundImage: AssetImage(
                         'assets/images/user_avatar.png'), // Replace with your asset or use NetworkImage
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   // User Name
-                  const Text(
+                  Text(
                     "User Name",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -74,9 +76,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       color: Colors.white,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   // User Email
-                  const Text(
+                  Text(
                     "user.email@example.com",
                     style: TextStyle(
                       fontSize: 16,
@@ -150,16 +152,4 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   // Drawer Item Widget
-  Widget _drawerItem(IconData icon, String title, int index) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-        Navigator.pop(context);
-      },
-    );
-  }
 }
