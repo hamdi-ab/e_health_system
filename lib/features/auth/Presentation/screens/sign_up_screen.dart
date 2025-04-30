@@ -1,8 +1,10 @@
 import 'package:e_health_system/features/auth/Presentation/screens/login_screen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../globals.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -34,9 +36,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       backgroundColor: AppColors.surface,
       body: Center(
         child: SingleChildScrollView(
+          physics: NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
@@ -44,14 +48,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
               children: [
                 _buildTitleSection(),
                 const SizedBox(height: 16),
-                _buildToggleSection(),
-                const SizedBox(height: 16),
+                // _buildToggleSection(),
+                // const SizedBox(height: 16),
                 _buildNameSection(),
                 const SizedBox(height: 16),
                 _buildEmailField(),
                 const SizedBox(height: 16),
                 // Show the file picker only if account type is "Doctor"
-                _selectedToggleIndex == 1
+                isDoctorUser
                     ? _buildFilePickerSection()
                     : const SizedBox.shrink(),
                 _buildPasswordField(),
@@ -183,6 +187,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         onPressed: () {
           if (_formKey.currentState!.validate()) {
             // TODO: Implement sign-up logic.
+            context.go('/home');
           }
         },
         style: ElevatedButton.styleFrom(
@@ -215,10 +220,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         ),
         TextButton(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LoginScreen()),
-            );
+            context.go('/sign-in');
           },
           child: const Text(
             'Sign in',

@@ -1,6 +1,7 @@
 import 'package:e_health_system/features/auth/Presentation/screens/otp_verification_screen.dart';
 import 'package:e_health_system/features/auth/Presentation/screens/sign_up_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,6 +18,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       backgroundColor: AppColors.surface,
       body: Center(
         child: SingleChildScrollView(
@@ -103,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
       onPressed: () {
         if (_formKey.currentState!.validate()) {
           // TODO: Handle sign in logic.
-          Navigator.push(context, MaterialPageRoute(builder: (context) => const OtpVerificationScreen()));
+          context.go('/home');
         }
       },
       style: ElevatedButton.styleFrom(

@@ -1,9 +1,9 @@
-import 'package:e_health_system/features/chat/presentation/screens/chat_conversation_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:e_health_system/core/constants/app_colors.dart'; // Adjust import as needed
+import 'package:e_health_system/core/constants/app_colors.dart';
+import 'package:go_router/go_router.dart'; // Adjust import as needed
 
 class ChatScreen extends StatelessWidget {
-   ChatScreen({super.key});
+   const ChatScreen({super.key});
 
   // Dummy chat data to simulate recent chats.
   final List<Map<String, dynamic>> _chats = const [
@@ -146,8 +146,8 @@ class ChatScreen extends StatelessWidget {
         ),
         onTap: () {
           // TODO: Navigate to chat details, if required.
-          Navigator.push(context, MaterialPageRoute(builder: (context) => ChatConversationScreen()));
-        },
+          context.push('/conversation');
+        }
       ),
     );
   }
