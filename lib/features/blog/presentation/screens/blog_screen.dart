@@ -1,98 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
-
-// ---------- Model for Blog posts ----------
-class Blog {
-  final String title;
-  final String author;
-  final String specialty;
-  final String datePosted;
-  final String snippet;
-  final String imageUrl;
-  final String content;
-
-  Blog({
-    required this.title,
-    required this.author,
-    required this.specialty,
-    required this.datePosted,
-    required this.snippet,
-    required this.imageUrl,
-    required this.content,
-  });
-}
+import '../../domain/entities/blog.dart';
+import '../provider/blog_notifier.dart';
+import 'add_blog_screen.dart';
+import 'comment_screen.dart';
 
 // ---------- BlogPage using _build methods ----------
-class BlogScreen extends StatelessWidget {
+
+class BlogScreen extends ConsumerStatefulWidget {
   final bool isDoctor;
   const BlogScreen({Key? key, required this.isDoctor}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    // Dummy Data:
-    final Blog featuredBlog = Blog(
-      title: "Heart Health: A Comprehensive Guide",
-      author: "Dr. Elias",
-      specialty: "Cardiologist",
-      datePosted: "Mar 3, 2025",
-      snippet:
-      "Heart health is more than just avoiding disease—it’s about proactive care and a vibrant lifestyle. Learn how to keep your heart healthy...",
-      imageUrl: "assets/article-min-edited-scaled.jpg",
-      content: "Full article content here...",
-    );
+  ConsumerState<BlogScreen> createState() => _BlogScreenState();
+}
 
-    final List<Blog> blogList = [
-      Blog(
-        title: "Skincare in Dry Climates",
-        author: "Dr. Hana",
-        specialty: "Dermatologist",
-        datePosted: "Feb 28, 2025",
-        snippet:
-        "Skincare in dry climates requires special attention. Discover hydration tips and protective routines for your skin...",
-        imageUrl: "assets/article-min-edited-scaled.jpg",
-        content: "Full article content here...",
-      ),
-      Blog(
-        title: "Nutrition and Longevity",
-        author: "Dr. Smith",
-        specialty: "Nutritionist",
-        datePosted: "Feb 20, 2025",
-        snippet:
-        "Balanced nutrition is key to a long and healthy life. Explore the secrets behind a diet that promotes longevity...",
-        imageUrl: "assets/article-min-edited-scaled.jpg",
-        content: "Full article content here...",
-      ),
-      // ... add more blogs as needed.
-    ];
+class _BlogScreenState extends ConsumerState<BlogScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Load blogs after the first frame is rendered to avoid calling ref.read during build.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(blogNotifierProvider).loadBlogs();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Use ref.watch to listen to changes on blogNotifierProvider.
+    final blogNotifier = ref.watch(blogNotifierProvider);
 
     return Scaffold(
-      // appBar: _buildAppBar(context),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSearchBar(context),
-            _buildFeaturedBlogSection(context, featuredBlog),
-            _buildBlogListSection(context, blogList),
-          ],
-        ),
-      ),
-      floatingActionButton: isDoctor ? _buildFloatingActionButton(context) : null,
+      body: blogNotifier.isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : blogNotifier.error != null
+          ? Center(child: Text('Error: ${blogNotifier.error}'))
+          : _buildBlogContent(context, blogNotifier.blogs),
+      floatingActionButton: widget.isDoctor ? _buildFloatingActionButton(context) : null,
     );
   }
 
-  AppBar _buildAppBar(BuildContext context) {
-    return AppBar(
-      title: const Text("Health Blog"),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: () {
-            // TODO: Implement search functionality.
-          },
-        ),
-      ],
+  Widget _buildBlogContent(BuildContext context, List<Blog> blogs) {
+    final Blog? featuredBlog = blogs.isNotEmpty ? blogs.first : null;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSearchBar(context),
+          if (featuredBlog != null) _buildFeaturedBlogSection(context, featuredBlog),
+          _buildBlogListSection(context, blogs),
+        ],
+      ),
     );
   }
 
@@ -111,7 +71,6 @@ class BlogScreen extends StatelessWidget {
     );
   }
 
-  /// Featured Blog Section with a tweaked card for extra importance.
   Widget _buildFeaturedBlogSection(BuildContext context, Blog blog) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,8 +86,11 @@ class BlogScreen extends StatelessWidget {
     );
   }
 
-  /// Featured Blog Card – larger image, more padding, and like/comment footer.
   Widget _buildFeaturedBlogCard(BuildContext context, Blog blog) {
+    const String currentUserId = "user1";
+
+// Check if current user has liked this blog.
+    final bool isLiked = blog.blogLikes.any((like) => like.userId == currentUserId);
     return Card(
       color: AppColors.surface,
       elevation: 3,
@@ -136,63 +98,76 @@ class BlogScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Featured Image – larger height.
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            child: Image.asset(
-              blog.imageUrl,
-              height: 220,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            )
-          ),
+          // Featured image.
+          // ClipRRect(
+          //   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          //   child: Image.asset(
+          //     blog.imageUrl,
+          //     height: 220,
+          //     width: double.infinity,
+          //     fit: BoxFit.cover,
+          //   ),
+          // ),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Author Info and Date
                 Text(
-                  "by ${blog.author} (${blog.specialty}) | ${blog.datePosted}",
+                  "by ${blog.author != null ? '${blog.author!.firstName} ${blog.author!.lastName}' : 'Unknown'} | ${blog.authorId}",
                   style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
                 const SizedBox(height: 8),
-                // Blog Title
                 Text(
                   blog.title,
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 16),
-                // Blog Snippet using expandable content.
-                _ExpandableBlogContent(content: blog.snippet),
+                _ExpandableBlogContent(content: blog.summary),
                 const SizedBox(height: 16),
-                // Like and Comment Footer.
                 Row(
                   children: [
                     OutlinedButton.icon(
                       onPressed: () {
-                        // TODO: Handle like toggle.
+                        // Toggle like status.
+                        ref.read(blogNotifierProvider.notifier).toggleLike(blog.blogId, currentUserId);
                       },
-                      icon: const Icon(Icons.thumb_up, color: Colors.red),
-                      label: const Text("3", style: TextStyle(color: Colors.red)),
+                      icon: Icon(
+                        Icons.thumb_up,
+                        color: isLiked ? Colors.red : Colors.grey,
+                      ),
+                      label: Text(
+                        blog.blogLikes.length.toString(),
+                        style: TextStyle(color: isLiked ? Colors.red : Colors.grey),
+                      ),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.red),
+                        side: BorderSide(color: isLiked ? Colors.red : Colors.grey),
                       ),
                     ),
+
                     const SizedBox(width: 8),
                     OutlinedButton(
                       onPressed: () {
-                        // TODO: Navigate to comments.
+                        // Navigate to the CommentsScreen, passing the current blog.
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => CommentsScreen(blog: blog),
+                          ),
+                        );
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.grey),
                       ),
-                      child: const Text("💬 Comments 0", style: TextStyle(color: Colors.grey)),
+                      child: Text(
+                        "💬 Comments ${blog.blogComments.length}",
+                        style: const TextStyle(color: Colors.grey),
+                      ),
                     ),
+
+
                   ],
                 ),
                 const SizedBox(height: 8),
-                // "Read More" button aligned to the right.
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
@@ -210,7 +185,6 @@ class BlogScreen extends StatelessWidget {
     );
   }
 
-  /// Latest Blog List Section using the Expandable style.
   Widget _buildBlogListSection(BuildContext context, List<Blog> blogList) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -225,8 +199,11 @@ class BlogScreen extends StatelessWidget {
     );
   }
 
-  /// Latest Blog Card using an expandable content area similar to ExpandableBlogCard.
   Widget _buildBlogCard(BuildContext context, Blog blog) {
+    const String currentUserId = "user1";
+    // Check if current user has liked this blog.
+    final bool isLiked = blog.blogLikes.any((like) => like.userId == currentUserId);
+
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -236,62 +213,74 @@ class BlogScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Blog Thumbnail.
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.asset(
-                blog.imageUrl,
-                height: 180,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-            const SizedBox(height: 12),
-            // Blog Header: Title and Author Info.
             RichText(
               text: TextSpan(
                 style: const TextStyle(fontSize: 16, color: Colors.black),
                 children: [
                   TextSpan(
-                    text: "by ${blog.author}",
+                    text: blog.author != null ? '${blog.author!.firstName} ${blog.author!.lastName}' : 'Unknown',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  TextSpan(text: " (${blog.specialty}) | ${blog.datePosted}"),
+                  TextSpan(text: " | ${blog.authorId}"),
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+            // ClipRRect(
+            //   borderRadius: BorderRadius.circular(8),
+            //   child: Image.asset(
+            //     blog.imageUrl,
+            //     height: 180,
+            //     width: double.infinity,
+            //     fit: BoxFit.cover,
+            //   ),
+            // ),
+            // const SizedBox(height: 12),
             Text(
               blog.title,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 16),
-            // Expandable Content for the snippet.
-            _ExpandableBlogContent(content: blog.snippet),
+            _ExpandableBlogContent(content: blog.summary),
             const SizedBox(height: 16),
-            // Like and Comment Footer.
             Row(
               children: [
                 OutlinedButton.icon(
                   onPressed: () {
-                    // TODO: Handle like toggle.
+                    // Toggle like status.
+                    ref.read(blogNotifierProvider.notifier).toggleLike(blog.blogId, currentUserId);
                   },
-                  icon: const Icon(Icons.thumb_up, color: Colors.red),
-                  label: const Text("3", style: TextStyle(color: Colors.red)),
+                  icon: Icon(
+                    Icons.thumb_up,
+                    color: isLiked ? Colors.red : Colors.grey,
+                  ),
+                  label: Text(
+                    blog.blogLikes.length.toString(),
+                    style: TextStyle(color: isLiked ? Colors.red : Colors.grey),
+                  ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.red),
+                    side: BorderSide(color: isLiked ? Colors.red : Colors.grey),
                   ),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton(
                   onPressed: () {
                     // TODO: Navigate to comments.
+                    Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => CommentsScreen(blog: blog),
+                        ),
+                    );
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.grey),
                   ),
-                  child: const Text("💬 Comments 0", style: TextStyle(color: Colors.grey)),
+                  child: Text(
+                    "💬 Comments ${blog.blogComments.length}",
+                    style: const TextStyle(color: Colors.grey),
+                  ),
                 ),
+
               ],
             ),
           ],
@@ -300,16 +289,21 @@ class BlogScreen extends StatelessWidget {
     );
   }
 
-  /// Floating Action Button for doctors to write a new blog post.
+  // Inside your BlogScreen widget:
   Widget _buildFloatingActionButton(BuildContext context) {
     return FloatingActionButton(
       onPressed: () {
-        // TODO: Open blog editor screen.
+        Navigator.of(context).push(
+          MaterialPageRoute(builder: (context) => const AddBlogScreen()),
+        );
       },
       child: const Icon(Icons.add),
     );
   }
+
 }
+
+
 
 /// ---------- Expandable Blog Content Widget ----------
 class _ExpandableBlogContent extends StatefulWidget {

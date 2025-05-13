@@ -1,3 +1,4 @@
+import 'package:e_health_system/features/appointment/domain/entities/appointment.dart';
 import 'package:flutter/material.dart';
 import 'package:e_health_system/core/constants/app_colors.dart';
 
@@ -64,10 +65,8 @@ class DoctorAppointmentScreen extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            ...todayQueueAppointments
-                .map((appointment) =>
-                _buildTodayQueueCard(context, appointment))
-                ,
+            ...todayQueueAppointments.map(
+                (appointment) => _buildTodayQueueCard(context, appointment)),
             const SizedBox(height: 16),
             // Upcoming Appointments Section
             const Text(
@@ -75,30 +74,29 @@ class DoctorAppointmentScreen extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            ...upcomingAppointments
-                .map((appointment) =>
-                _buildUpcomingAppointmentCard(context, appointment))
-                ,
-            const SizedBox(height: 16),
-            // Appointment History Section
-            const Text(
-              "Appointment History",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            _buildHistoryFilter(context),
-            const SizedBox(height: 8),
-            ...historyAppointments
-                .map((appointment) =>
-                _buildHistoryAppointmentCard(context, appointment))
-                ,
+            ...upcomingAppointments.map(
+              (appointment) =>
+                  // _buildUpcomingAppointmentCard(context, appointment)),
+                  const SizedBox(height: 16),
+              // Appointment History Section
+              // const Text(
+              //   "Appointment History",
+              //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              // ),
+              // const SizedBox(height: 8),
+              // _buildHistoryFilter(context),
+              // const SizedBox(height: 8),
+              // ...historyAppointments.map((appointment) =>
+              //     _buildHistoryAppointmentCard(context, appointment)),
+            )
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTodayQueueCard(BuildContext context, Map<String, dynamic> appointment) {
+  Widget _buildTodayQueueCard(
+      BuildContext context, Map<String, dynamic> appointment) {
     return Stack(
       children: [
         Card(
@@ -134,16 +132,20 @@ class DoctorAppointmentScreen extends StatelessWidget {
                         children: [
                           Text(
                             appointment["name"],
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             appointment["type"],
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).primaryColor,
-                            ),
+                            style:
+                                Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Theme.of(context).primaryColor,
+                                    ),
                           ),
                         ],
                       ),
@@ -153,15 +155,18 @@ class DoctorAppointmentScreen extends StatelessWidget {
                       children: [
                         Text(
                           appointment["time"],
-                          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style:
+                              Theme.of(context).textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                  ),
                         ),
                         const SizedBox(height: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(appointment["status"]).withOpacity(0.1),
+                            color: _getStatusColor(appointment["status"])
+                                .withOpacity(0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
@@ -200,9 +205,11 @@ class DoctorAppointmentScreen extends StatelessWidget {
                           const SizedBox(width: 8),
                           Expanded(
                             child: FilledButton(
-                              onPressed: () => _handleRescheduleAction(appointment),
+                              onPressed: () =>
+                                  _handleRescheduleAction(appointment),
                               style: FilledButton.styleFrom(
-                                backgroundColor: Theme.of(context).colorScheme.primary,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary,
                                 minimumSize: const Size(100, 40),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12.0),
@@ -211,7 +218,8 @@ class DoctorAppointmentScreen extends StatelessWidget {
                               child: Text(
                                 "Reschedule",
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onPrimary,
+                                  color:
+                                      Theme.of(context).colorScheme.onPrimary,
                                 ),
                               ),
                             ),
@@ -307,33 +315,31 @@ class DoctorAppointmentScreen extends StatelessWidget {
     // Implement the no-show action logic.
   }
 
-
-
   /// Upcoming Appointment Card
-  Widget _buildUpcomingAppointmentCard(
-      BuildContext context, Map<String, dynamic> appointment) {
-    return AppointmentSection(
-      title: 'Upcoming Appointments',
-      appointments: [Appointment.fromMap(appointment)],
-      isDoctor: true,
-      isUpcoming: true,
-      onPrimaryAction: (apt) { /* reschedule */ },
-      onSecondaryAction: (apt) { /* cancel */ },
-    );
-  }
+  // Widget _buildUpcomingAppointmentCard(
+  //     BuildContext context, Map<String, dynamic> appointment) {
+  //   return AppointmentSection(
+  //     title: 'Upcoming Appointments',
+  //     appointments: [Appointment.fromMap(appointment)],
+  //     isDoctor: true,
+  //     isUpcoming: true,
+  //     onPrimaryAction: (apt) {/* reschedule */},
+  //     onSecondaryAction: (apt) {/* cancel */},
+  //   );
+  // }
 
   /// Appointment History Card
-  Widget _buildHistoryAppointmentCard(
-      BuildContext context, Map<String, dynamic> appointment) {
-    return AppointmentSection(
-      title: 'Upcoming Appointments',
-      appointments: [Appointment.fromMap(appointment)],
-      isDoctor: true,
-      isUpcoming: false,
-      onPrimaryAction: (apt) { /* reschedule */ },
-      onSecondaryAction: (apt) { /* cancel */ },
-    );
-  }
+  // Widget _buildHistoryAppointmentCard(
+  //     BuildContext context, Map<String, dynamic> appointment) {
+  //   return AppointmentSection(
+  //     title: 'Upcoming Appointments',
+  //     appointments: [Appointment.fromMap(appointment)],
+  //     isDoctor: true,
+  //     isUpcoming: false,
+  //     onPrimaryAction: (apt) {/* reschedule */},
+  //     onSecondaryAction: (apt) {/* cancel */},
+  //   );
+  // }
 
   /// History Filter Widget
   Widget _buildHistoryFilter(BuildContext context) {

@@ -2,6 +2,8 @@ import 'package:e_health_system/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 
 import '../../../blog/presentation/widgets/expandable_blog_card.dart';
+import '../../../search/presentation/screens/search_result_screen.dart';
+import '../../../search/presentation/widgets/filter_modal_widgets.dart';
 
 class PatientHome extends StatelessWidget {
   const PatientHome({super.key});
@@ -28,26 +30,61 @@ class PatientHome extends StatelessWidget {
 
   Widget _buildSearchBar(BuildContext context) {
     return TextField(
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: AppColors.surface,
-        hintText: "Search doctors by name, specialty…",
-        prefixIcon: const Icon(Icons.search),
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.tune), // Filter icon
-          onPressed: () {
-            // Handle filter action
-            _showFilterModal(context);
-          },
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: AppColors.surface,
+          hintText: "Search doctors by name, specialty…",
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: IconButton(
+            icon: const Icon(Icons.tune), // Filter icon
+            onPressed: () {
+              // Handle filter action
+              showFilterModal(context);
+            },
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
         ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
+        onSubmitted: (query) {
+          // When the user submits their search (presses the enter key), navigate to the search results screen.
+          if (query.trim().isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => SearchResultScreen(query: query),
+              ),
+            );
+          }
+        });
+  }
+
+// Helper method for Specialty Icons with Circle Avatar
+  Widget _specialtyCircle(String title, IconData icon) {
+    return Padding(
+      padding:
+          const EdgeInsets.symmetric(vertical: 8.0), // Adds vertical spacing
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 30, // Adjust size as needed
+            backgroundColor:
+                AppColors.primary.withOpacity(0.2), // Light background
+            child: Icon(icon,
+                color: AppColors.primary, size: 28), // Specialty Icon
+          ),
+          const SizedBox(height: 8), // More space between icon and text
+          Text(
+            title,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
 
-  // Method for Specialty Section
+// Builds Specialty Section with Horizontal Scroll
   Widget _buildSpecialtySection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -56,36 +93,36 @@ class PatientHome extends StatelessWidget {
           "Specialties",
           style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8.0),
+        const SizedBox(height: 12), // Added spacing between title and chips
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _specialtyChip("Cardiology"),
-              _specialtyChip("Pediatrics"),
-              _specialtyChip("Dermatology"),
-              _specialtyChip("Neurology"),
-              _specialtyChip("Orthopedics"),
-              _specialtyChip("Oncology"),
-              _specialtyChip("Gynecology"),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+                horizontal: 8.0), // Padding for better visual alignment
+            child: Row(
+              children: [
+                _specialtyCircle("Cardiology", Icons.favorite_rounded), // Heart
+                const SizedBox(width: 16), // Space between elements
+                _specialtyCircle("Pediatrics", Icons.child_care), // Child icon
+                const SizedBox(width: 16),
+                _specialtyCircle(
+                    "Dermatology", Icons.spa), // Skincare/natural remedies
+                const SizedBox(width: 16),
+                _specialtyCircle("Neurology", Icons.psychology), // Brain icon
+                const SizedBox(width: 16),
+                _specialtyCircle(
+                    "Orthopedics", Icons.accessibility_new), // Bone/joint care
+                const SizedBox(width: 16),
+                _specialtyCircle(
+                    "Oncology", Icons.local_hospital), // Cancer care/hospital
+                const SizedBox(width: 16),
+                _specialtyCircle(
+                    "Gynecology", Icons.pregnant_woman), // Women's health
+              ],
+            ),
           ),
         ),
       ],
-    );
-  }
-
-  // Helper method for Specialty Chips
-  Widget _specialtyChip(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Chip(
-        label: Text(
-          title,
-          style: const TextStyle(color: Colors.white), // High contrast text
-        ),
-        backgroundColor: AppColors.primary.withAlpha(200), // Light transparent shade
-      ),
     );
   }
 
@@ -93,16 +130,21 @@ class PatientHome extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("Top Rated Doctors", style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)),
+        const Text("Top Rated Doctors",
+            style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8.0),
-        _doctorCard("Dr. A", "Cardiology", 4.8, "Experienced cardiologist specializing in heart health and preventive care."),
-        _doctorCard("Dr. B", "Pediatrics", 4.7, "Passionate about children's health, with over 10 years in pediatric medicine."),
-        _doctorCard("Dr. C", "Dermatology", 4.9, "Expert in skin disorders, treatments, and cosmetic dermatology procedures."),
+        _doctorCard("Dr. A", "Cardiology", 4.8,
+            "Experienced cardiologist specializing in heart health and preventive care."),
+        _doctorCard("Dr. B", "Pediatrics", 4.7,
+            "Passionate about children's health, with over 10 years in pediatric medicine."),
+        _doctorCard("Dr. C", "Dermatology", 4.9,
+            "Expert in skin disorders, treatments, and cosmetic dermatology procedures."),
       ],
     );
   }
 
-  Widget _doctorCard(String name, String specialty, double rating, String description) {
+  Widget _doctorCard(
+      String name, String specialty, double rating, String description) {
     return Card(
       elevation: 3.0,
       color: AppColors.surface, // Background color matches app theme
@@ -111,28 +153,52 @@ class PatientHome extends StatelessWidget {
         padding: const EdgeInsets.all(12.0),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 22.0),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    backgroundColor: AppColors.primary, // Matches theme
-                    child: Icon(Icons.person, size: 40, color: Colors.white), // Icon color optimized
+            Row(
+              children: [
+                const CircleAvatar(
+                  radius: 30,
+                  backgroundColor: AppColors.primary, // Matches theme
+                  child: Icon(Icons.person,
+                      size: 40, color: Colors.white), // Icon color optimized
+                ),
+                const SizedBox(width: 12.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(name,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24.0,
+                              color: AppColors.primary)),
+                      Text(specialty,
+                          style: const TextStyle(
+                              fontSize: 18, color: AppColors.textSecondary)),
+                    ],
                   ),
-                  const SizedBox(width: 12.0),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24.0, color: AppColors.primary)),
-                        Text(specialty, style: const TextStyle(fontSize: 18, color: AppColors.textSecondary)),
-                      ],
+                ),
+                Row(
+                  children: [
+                    const Text(
+                      "★★★★★",
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber,
+                      ),
                     ),
-                  ),
-                  Text("★ $rating", style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold, color: Colors.amber)),
-                ],
-              ),
+                    const SizedBox(width: 5), // Adds some spacing
+                    Text(
+                      "($rating)",
+                      style: const TextStyle(
+                        fontSize: 16.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.amber,
+                      ),
+                    ),
+                  ],
+                )
+              ],
             ),
             const SizedBox(height: 8.0),
             Row(
@@ -142,16 +208,21 @@ class PatientHome extends StatelessWidget {
                     description,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 14.0, color: AppColors.textSecondary),
+                    style: const TextStyle(
+                        fontSize: 14.0, color: AppColors.textSecondary),
                   ),
                 ),
                 const SizedBox(width: 12.0),
                 ElevatedButton(
                   onPressed: () {},
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),),
-                  child: const Text("Book", style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10.0),
+                    ),
+                  ),
+                  child:
+                      const Text("Book", style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
@@ -160,8 +231,6 @@ class PatientHome extends StatelessWidget {
       ),
     );
   }
-
-
 
   // Upcoming Appointments
   Widget _buildUpcomingAppointments() {
@@ -184,7 +253,7 @@ class PatientHome extends StatelessWidget {
 
   // Recent Blogs
   Widget _buildRecentBlogs() {
-    return  Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text("Recent Blogs",
@@ -199,102 +268,4 @@ class PatientHome extends StatelessWidget {
   Widget _blogPost(String title) {
     return ExpandableBlogCard(title: title);
   }
-
-  void _showFilterModal(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-      ),
-      builder: (BuildContext context) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Wrap(
-            children: [
-              // Header Section
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    "Filter Options",
-                    style: TextStyle(
-                      fontSize: 20.0,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, color: AppColors.primary),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8.0),
-              // Clear Filters Option
-              TextButton(
-                onPressed: () {
-                  // Logic to reset filters goes here.
-                },
-                child: const Text("Clear All", style: TextStyle(color: AppColors.accent)),
-              ),
-              const Divider(),
-              // Filter Options Section
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 8.0),
-                child: Text(
-                  "Specialty",
-                  style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w600, color: AppColors.primary),
-                ),
-              ),
-              Wrap(
-                spacing: 8.0,
-                runSpacing: 8.0,
-                children: [
-                  // Example filter chip. This can be a ChoiceChip or FilterChip.
-                  FilterChip(
-                    label: const Text("Cardiologist"),
-                    selected: false,
-                    onSelected: (isSelected) {
-                      // Update selection state.
-                    },
-                    selectedColor: AppColors.primaryLight,
-                    backgroundColor: AppColors.surface,
-                  ),
-                  FilterChip(
-                    label: const Text("Dentist"),
-                    selected: false,
-                    onSelected: (isSelected) {},
-                    selectedColor: AppColors.primaryLight,
-                    backgroundColor: AppColors.surface,
-                  ),
-                  // Add more chips as needed...
-                ],
-              ),
-              const SizedBox(height: 16.0),
-              // Other filter categories (e.g., Location, Rating) can be added here.
-              // Footer: Apply Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Apply filter changes and dismiss the bottom sheet.
-                    Navigator.of(context).pop();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                  ),
-                  child: const Text("Apply Filters", style: TextStyle(color: Colors.white)),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
 }

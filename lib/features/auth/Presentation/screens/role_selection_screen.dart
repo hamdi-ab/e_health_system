@@ -38,6 +38,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                       color: AppColors.primary,
                     ),
+                    
                   ),
                 ],
               ),

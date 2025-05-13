@@ -1,0 +1,4 @@
+enum PaymentProvider {
+  Unknown,
+  Chapa,
+}

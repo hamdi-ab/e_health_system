@@ -25,11 +25,11 @@ class AppTheme {
     // AppBar styling.
     appBarTheme: const AppBarTheme(
       centerTitle: true,
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.primary,
       elevation: 0,
-      iconTheme: IconThemeData(color: AppColors.primary),
+      iconTheme: IconThemeData(color: Colors.white),
       titleTextStyle: TextStyle(
-        color: AppColors.primary,
+        color: Colors.white,
         fontSize: 20,
         fontWeight: FontWeight.bold,
       ),

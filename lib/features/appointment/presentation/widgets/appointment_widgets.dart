@@ -1,39 +1,6 @@
+import 'package:e_health_system/features/appointment/domain/entities/appointment.dart';
+import 'package:e_health_system/shared/enums/appointment_status.dart';
 import 'package:flutter/material.dart';
-import 'package:e_health_system/core/constants/app_colors.dart';
-
-enum AppointmentStatus { upcoming, completed, cancelled }
-
-/// Model representing an appointment entry.
-class Appointment {
-  final String name;
-  final String date;
-  final String type;
-  final String? specialty;
-  final bool? rated;// Keep for patient side
-  final AppointmentStatus status;
-
-  Appointment({
-    required this.name,
-    required this.date,
-    required this.type,
-    this.specialty,
-    this.rated = false,
-    this.status = AppointmentStatus.upcoming,
-  });
-
-  factory Appointment.fromMap(Map<String, dynamic> map) {
-    return Appointment(
-      name: map["name"],
-      date: map["date"],
-      type: map["type"],
-      specialty: map["specialty"],
-      rated: map["rated"] ?? false,
-      status: AppointmentStatus.upcoming,
-    );
-  }
-
-
-}
 
 /// A reusable card widget for displaying appointment details.
 class AppointmentCard extends StatelessWidget {
@@ -68,7 +35,8 @@ class AppointmentCard extends StatelessWidget {
                   radius: 24,
                   backgroundColor: Colors.blue.shade200,
                   child: Text(
-                    appointment.name[0],
+                    appointment
+                        .doctorId[0], // Use doctorId for avatar placeholder
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -82,7 +50,7 @@ class AppointmentCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        appointment.name,
+                        "Dr. ${appointment.doctorId}", // Assuming doctorId is a placeholder for name
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -90,7 +58,8 @@ class AppointmentCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        appointment.date,
+                        appointment.appointmentTime
+                            .format(context), // Corrected formatting
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
@@ -103,7 +72,8 @@ class AppointmentCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      appointment.type,
+                      appointment.appointmentType
+                          .name, // Extracts only the string name
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.blue,
@@ -112,7 +82,8 @@ class AppointmentCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     if (!isDoctor) // Show specialty ONLY for patient side
                       Text(
-                        appointment.specialty!,
+                        appointment
+                            .doctorId, // Assuming patientId represents name/details
                         style: const TextStyle(
                           fontSize: 14,
                           color: Colors.black,
@@ -130,7 +101,8 @@ class AppointmentCard extends StatelessWidget {
                     isUpcoming: isUpcoming,
                     isDoctor: isDoctor,
                     appointment: appointment,
-                    rated: appointment.rated!,
+                    rated:
+                        true, // Assuming rated logic can be handled separately
                     onPressed: onPrimaryAction,
                   ),
                 ),
@@ -140,7 +112,8 @@ class AppointmentCard extends StatelessWidget {
                     onPressed: onSecondaryAction,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isUpcoming ? Colors.red : Colors.blue,
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 8, horizontal: 12),
                       textStyle: const TextStyle(fontSize: 14),
                     ),
                     child: Text(isUpcoming ? 'Cancel' : 'View Detail'),
@@ -180,9 +153,13 @@ class _PrimaryAction extends StatelessWidget {
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           child: Text(
-            appointment.status == AppointmentStatus.completed ? 'Completed' : 'Cancelled',
+            appointment.status == AppointmentStatus.Completed
+                ? 'Completed'
+                : 'Cancelled',
             style: TextStyle(
-              color: appointment.status == AppointmentStatus.completed ? Colors.green : Colors.red,
+              color: appointment.status == AppointmentStatus.Completed
+                  ? Colors.green
+                  : Colors.red,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -192,7 +169,27 @@ class _PrimaryAction extends StatelessWidget {
         return Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          child: const Icon(Icons.star, color: Colors.amber, size: 24),
+          child: const Row(
+            children: [
+              Text(
+                "★★★★★",
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.amber,
+                ),
+              ),
+              SizedBox(width: 5), // Adds some spacing
+              Text(
+                "(48)",
+                style: TextStyle(
+                  fontSize: 16.0,
+                  fontWeight: FontWeight.normal,
+                  color: Colors.amber,
+                ),
+              ),
+            ],
+          ),
         );
       }
     }

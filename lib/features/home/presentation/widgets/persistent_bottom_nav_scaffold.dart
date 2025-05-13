@@ -42,7 +42,7 @@ class _PersistentBottomNavScaffoldState
             style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w600,
-                color: AppColors.primary)),
+                color: Colors.white)),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),
