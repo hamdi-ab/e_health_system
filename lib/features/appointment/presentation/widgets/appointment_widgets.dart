@@ -5,13 +5,13 @@ import 'package:flutter/material.dart';
 /// A reusable card widget for displaying appointment details.
 class AppointmentCard extends StatelessWidget {
   const AppointmentCard({
-    Key? key,
+    super.key,
     required this.appointment,
     required this.isUpcoming,
     required this.isDoctor,
     this.onPrimaryAction,
     this.onSecondaryAction,
-  }) : super(key: key);
+  });
 
   final Appointment appointment;
   final bool isUpcoming;
@@ -130,13 +130,12 @@ class AppointmentCard extends StatelessWidget {
 
 class _PrimaryAction extends StatelessWidget {
   const _PrimaryAction({
-    Key? key,
     required this.isUpcoming,
     required this.isDoctor,
     required this.appointment,
     required this.rated,
     this.onPressed,
-  }) : super(key: key);
+  });
 
   final bool isUpcoming;
   final bool isDoctor;
@@ -208,14 +207,14 @@ class _PrimaryAction extends StatelessWidget {
 /// A section widget to display a list of appointments.
 class AppointmentSection extends StatelessWidget {
   const AppointmentSection({
-    Key? key,
+    super.key,
     required this.title,
     required this.appointments,
     this.isUpcoming = true,
     this.onPrimaryAction,
     this.onSecondaryAction,
     this.isDoctor = false,
-  }) : super(key: key);
+  });
 
   final String title;
   final List<Appointment> appointments;

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/blog.dart';
-import '../../domain/entities/blog_tag.dart';
-import '../provider/blog_notifier.dart';
+import '../bloc/blog_bloc.dart';
+import '../bloc/blog_event.dart';
 
-class AddBlogScreen extends ConsumerStatefulWidget {
-  const AddBlogScreen({Key? key}) : super(key: key);
+class AddBlogScreen extends StatefulWidget {
+  const AddBlogScreen({super.key});
 
   @override
   _AddBlogScreenState createState() => _AddBlogScreenState();
 }
 
-class _AddBlogScreenState extends ConsumerState<AddBlogScreen> {
+class _AddBlogScreenState extends State<AddBlogScreen> {
   final _formKey = GlobalKey<FormState>();
 
   // Controllers for form fields.
@@ -63,7 +63,7 @@ class _AddBlogScreenState extends ConsumerState<AddBlogScreen> {
         // blogTags: tagNames.map((tag) => BlogTag(tagName: tag)).toList(),
       );
 
-      ref.read(blogNotifierProvider.notifier).addBlog(newBlog);
+      context.read<BlogBloc>().add(AddBlog(newBlog));
 
       // Show a confirmation SnackBar and navigate back.
       ScaffoldMessenger.of(context).showSnackBar(

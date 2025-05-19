@@ -1,11 +1,10 @@
 import 'package:e_health_system/core/constants/app_colors.dart';
-import 'package:e_health_system/features/auth/Presentation/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../globals.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
-  const RoleSelectionScreen({Key? key}) : super(key: key);
+  const RoleSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

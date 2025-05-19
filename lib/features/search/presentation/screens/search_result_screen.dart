@@ -6,7 +6,7 @@ import '../widgets/doctor_card.dart';
 class SearchResultScreen extends ConsumerWidget {
   final String query;
 
-  const SearchResultScreen({Key? key, required this.query}) : super(key: key);
+  const SearchResultScreen({super.key, required this.query});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

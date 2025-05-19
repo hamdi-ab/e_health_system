@@ -1,5 +1,7 @@
 // File: lib/models/doctor_availability.dart
 
+import 'package:flutter/material.dart' show TimeOfDay;
+
 import 'doctor.dart';
 import '../shared/enums/day_of_week.dart'; // Adjust the path as needed
 
@@ -7,8 +9,8 @@ class DoctorAvailability {
   final String doctorAvailabilityId;
   final String doctorId;
   final DayOfWeek availableDay;
-  final String startTime; // Stored as HH:mm, e.g., "06:00"
-  final String endTime; // Stored as HH:mm, e.g., "18:00"
+  final TimeOfDay startTime; // Stored as HH:mm, e.g., "06:00"
+  final TimeOfDay endTime; // Stored as HH:mm, e.g., "18:00"
   final Doctor? doctor;
 
   DoctorAvailability({
@@ -29,8 +31,14 @@ class DoctorAvailability {
             e.toString().split('.').last.toLowerCase() ==
             (json['availableDay'] as String).toLowerCase(),
       ),
-      startTime: json['startTime'] as String,
-      endTime: json['endTime'] as String,
+      startTime: TimeOfDay(
+        hour: int.parse(json['appointmentTime'].split(':')[0]),
+        minute: int.parse(json['appointmentTime'].split(':')[1]),
+      ),
+      endTime: TimeOfDay(
+        hour: int.parse(json['appointmentTime'].split(':')[0]),
+        minute: int.parse(json['appointmentTime'].split(':')[1]),
+      ),
       doctor: Doctor.fromJson(json['doctor'] as Map<String, dynamic>),
     );
   }

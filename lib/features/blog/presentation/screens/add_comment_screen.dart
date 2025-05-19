@@ -7,7 +7,7 @@ import '../provider/blog_notifier.dart';
 
 class AddCommentScreen extends ConsumerStatefulWidget {
   final String blogId;
-  const AddCommentScreen({Key? key, required this.blogId}) : super(key: key);
+  const AddCommentScreen({super.key, required this.blogId});
 
   @override
   _AddCommentScreenState createState() => _AddCommentScreenState();
@@ -46,7 +46,7 @@ class _AddCommentScreenState extends ConsumerState<AddCommentScreen> {
 
       // Show a confirmation message and return.
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Comment added!")),
+        const SnackBar(content: Text("Comment added!")),
       );
       Navigator.of(context).pop();
     }

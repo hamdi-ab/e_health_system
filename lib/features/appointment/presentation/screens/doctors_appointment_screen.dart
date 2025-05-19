@@ -1,8 +1,6 @@
-import 'package:e_health_system/features/appointment/domain/entities/appointment.dart';
 import 'package:flutter/material.dart';
-import 'package:e_health_system/core/constants/app_colors.dart';
 
-import '../widgets/appointment_widgets.dart'; // Replace with your theme/colors file if needed.
+// Replace with your theme/colors file if needed.
 
 class DoctorAppointmentScreen extends StatelessWidget {
   const DoctorAppointmentScreen({super.key});

@@ -72,4 +72,40 @@ class BlogRepository {
     blog.blogLikes.removeWhere((like) => like.userId == userId);
   }
 
+  Future<List<Blog>> searchBlogs({
+    required String query,
+  }) async {
+    // TODO: Implement actual API call
+    // For now, return mock data
+    final mockBlogs = [
+      Blog(
+        blogId: '1',
+        title: 'Managing patient records efficiently',
+        content: 'Best practices for managing patient records...',
+        slug: 'managing-patient-records',
+        summary: 'Learn about efficient patient record management',
+        authorId: '1',
+        blogComments: [],
+        blogLikes: [],
+        blogTags: [],
+      ),
+      Blog(
+        blogId: '2',
+        title: 'Best practices in online consultations',
+        content: 'Tips for effective online consultations...',
+        slug: 'online-consultations',
+        summary: 'Expert tips for online medical consultations',
+        authorId: '2',
+        blogComments: [],
+        blogLikes: [],
+        blogTags: [],
+      ),
+    ];
+
+    return mockBlogs.where((blog) {
+      if (query.isEmpty) return true;
+      return blog.title.toLowerCase().contains(query.toLowerCase()) ||
+          blog.content.toLowerCase().contains(query.toLowerCase());
+    }).toList();
+  }
 }

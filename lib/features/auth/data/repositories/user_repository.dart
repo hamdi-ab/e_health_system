@@ -17,6 +17,20 @@ class UserRepository {
       orElse: () => throw Exception("User not found"),
     );
   }
+
+  /// Updates the user information
+  Future<User> updateUser(User updatedUser) async {
+    await Future.delayed(const Duration(seconds: 1)); // Simulated network delay
+    
+    // Find and update the user in the mock list
+    final index = mockUsers.indexWhere((user) => user.userId == updatedUser.userId);
+    if (index == -1) {
+      throw Exception("User not found");
+    }
+    
+    mockUsers[index] = updatedUser;
+    return updatedUser;
+  }
 }
 
 List<User> mockUsers = [

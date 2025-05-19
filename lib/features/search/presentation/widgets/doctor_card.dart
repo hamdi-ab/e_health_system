@@ -6,7 +6,7 @@ import '../../../../models/doctor.dart'; // Adjust the import path based on your
 class DoctorCard extends StatelessWidget {
   final Doctor doctor;
 
-  const DoctorCard({Key? key, required this.doctor}) : super(key: key);
+  const DoctorCard({super.key, required this.doctor});
 
   @override
   Widget build(BuildContext context) {

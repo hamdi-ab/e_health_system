@@ -1,4 +1,3 @@
-import 'package:e_health_system/features/auth/Presentation/screens/login_screen.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -43,7 +42,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       backgroundColor: AppColors.surface,
       body: Center(
         child: SingleChildScrollView(
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,

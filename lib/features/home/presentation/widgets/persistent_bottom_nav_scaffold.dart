@@ -24,6 +24,7 @@ class _PersistentBottomNavScaffoldState
     '/chat',
     '/blog',
   ];
+  final currentUserId = "user1";
 
   // Define the corresponding titles for the AppBar.
   final List<String> _titles = [
@@ -48,7 +49,7 @@ class _PersistentBottomNavScaffoldState
             icon: const Icon(Icons.notifications),
             onPressed: () {
               // Handle notifications
-              context.push('/notifications');
+              context.push('/notifications/$currentUserId');
             },
           ),
         ],

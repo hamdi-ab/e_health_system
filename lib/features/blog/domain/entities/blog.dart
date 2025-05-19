@@ -33,6 +33,33 @@ class Blog {
         blogLikes = blogLikes ?? [],
         blogTags = blogTags ?? [];
 
+  // Creates a copy of this Blog with the given fields replaced with new values
+  Blog copyWith({
+    String? blogId,
+    String? title,
+    String? content,
+    String? slug,
+    String? summary,
+    String? authorId,
+    User? author,
+    List<BlogComment>? blogComments,
+    List<BlogLike>? blogLikes,
+    List<BlogTag>? blogTags,
+  }) {
+    return Blog(
+      blogId: blogId ?? this.blogId,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      slug: slug ?? this.slug,
+      summary: summary ?? this.summary,
+      authorId: authorId ?? this.authorId,
+      author: author ?? this.author,
+      blogComments: blogComments ?? this.blogComments,
+      blogLikes: blogLikes ?? this.blogLikes,
+      blogTags: blogTags ?? this.blogTags,
+    );
+  }
+
   factory Blog.fromJson(Map<String, dynamic> json) {
     return Blog(
       blogId: json['blogId'] as String,

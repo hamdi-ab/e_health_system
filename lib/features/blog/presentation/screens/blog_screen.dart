@@ -1,43 +1,64 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/blog.dart';
-import '../provider/blog_notifier.dart';
+import '../bloc/blog_bloc.dart';
+import '../bloc/blog_event.dart';
+import '../bloc/blog_state.dart';
 import 'add_blog_screen.dart';
-import 'comment_screen.dart';
+import 'comments_bottom_sheet.dart';
+import '../../../home/presentation/widgets/blog_like_button.dart';
 
 // ---------- BlogPage using _build methods ----------
 
-class BlogScreen extends ConsumerStatefulWidget {
+class BlogScreen extends StatelessWidget {
   final bool isDoctor;
-  const BlogScreen({Key? key, required this.isDoctor}) : super(key: key);
-
-  @override
-  ConsumerState<BlogScreen> createState() => _BlogScreenState();
-}
-
-class _BlogScreenState extends ConsumerState<BlogScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Load blogs after the first frame is rendered to avoid calling ref.read during build.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(blogNotifierProvider).loadBlogs();
-    });
-  }
+  const BlogScreen({super.key, required this.isDoctor});
 
   @override
   Widget build(BuildContext context) {
-    // Use ref.watch to listen to changes on blogNotifierProvider.
-    final blogNotifier = ref.watch(blogNotifierProvider);
+    return BlocProvider(
+      create: (context) => BlogBloc(
+        repository: context.read(),
+      )..add(const LoadBlogs()),
+      child: Scaffold(
+        body: BlocBuilder<BlogBloc, BlogState>(
+          builder: (context, state) {
+            if (state is BlogLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-    return Scaffold(
-      body: blogNotifier.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : blogNotifier.error != null
-          ? Center(child: Text('Error: ${blogNotifier.error}'))
-          : _buildBlogContent(context, blogNotifier.blogs),
-      floatingActionButton: widget.isDoctor ? _buildFloatingActionButton(context) : null,
+            if (state is BlogError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Error: ${state.message}',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<BlogBloc>().add(const LoadBlogs());
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (state is BlogsLoaded) {
+              return _buildBlogContent(context, state.blogs);
+            }
+
+            return const Center(child: Text('No blogs available'));
+          },
+        ),
+        floatingActionButton:
+            isDoctor ? _buildFloatingActionButton(context) : null,
+      ),
     );
   }
 
@@ -49,7 +70,8 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildSearchBar(context),
-          if (featuredBlog != null) _buildFeaturedBlogSection(context, featuredBlog),
+          if (featuredBlog != null)
+            _buildFeaturedBlogSection(context, featuredBlog),
           _buildBlogListSection(context, blogs),
         ],
       ),
@@ -67,6 +89,13 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
+        onChanged: (query) {
+          if (query.isEmpty) {
+            context.read<BlogBloc>().add(const ClearSearch());
+          } else {
+            context.read<BlogBloc>().add(SearchBlogs(query));
+          }
+        },
       ),
     );
   }
@@ -88,9 +117,9 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
 
   Widget _buildFeaturedBlogCard(BuildContext context, Blog blog) {
     const String currentUserId = "user1";
+    final bool isLiked =
+        blog.blogLikes.any((like) => like.userId == currentUserId);
 
-// Check if current user has liked this blog.
-    final bool isLiked = blog.blogLikes.any((like) => like.userId == currentUserId);
     return Card(
       color: AppColors.surface,
       elevation: 3,
@@ -98,16 +127,6 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Featured image.
-          // ClipRRect(
-          //   borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-          //   child: Image.asset(
-          //     blog.imageUrl,
-          //     height: 220,
-          //     width: double.infinity,
-          //     fit: BoxFit.cover,
-          //   ),
-          // ),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -120,40 +139,28 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
                 const SizedBox(height: 8),
                 Text(
                   blog.title,
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700),
+                  style: const TextStyle(
+                      fontSize: 24, fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 16),
                 _ExpandableBlogContent(content: blog.summary),
                 const SizedBox(height: 16),
                 Row(
                   children: [
-                    OutlinedButton.icon(
+                    BlogLikeButton(
+                      isLiked: isLiked,
+                      likeCount: blog.blogLikes.length,
                       onPressed: () {
-                        // Toggle like status.
-                        ref.read(blogNotifierProvider.notifier).toggleLike(blog.blogId, currentUserId);
+                        context.read<BlogBloc>().add(ToggleLike(
+                              blogId: blog.blogId,
+                              userId: currentUserId,
+                            ));
                       },
-                      icon: Icon(
-                        Icons.thumb_up,
-                        color: isLiked ? Colors.red : Colors.grey,
-                      ),
-                      label: Text(
-                        blog.blogLikes.length.toString(),
-                        style: TextStyle(color: isLiked ? Colors.red : Colors.grey),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: isLiked ? Colors.red : Colors.grey),
-                      ),
                     ),
-
                     const SizedBox(width: 8),
                     OutlinedButton(
                       onPressed: () {
-                        // Navigate to the CommentsScreen, passing the current blog.
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => CommentsScreen(blog: blog),
-                          ),
-                        );
+                        _showCommentsSheet(context, blog);
                       },
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.grey),
@@ -163,8 +170,6 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
                         style: const TextStyle(color: Colors.grey),
                       ),
                     ),
-
-
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -172,9 +177,10 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () {
-                      // TODO: Navigate to Blog Detail Page.
+                      // TODO: Navigate to Blog Detail Page
                     },
-                    child: const Text("Read More", style: TextStyle(fontSize: 16)),
+                    child:
+                        const Text("Read More", style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],
@@ -186,23 +192,31 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
   }
 
   Widget _buildBlogListSection(BuildContext context, List<Blog> blogList) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Latest Blogs",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 8),
-        ...blogList.map((blog) => _buildBlogCard(context, blog)),
-      ],
+    return BlocBuilder<BlogBloc, BlogState>(
+      builder: (context, state) {
+        if (state is BlogsLoaded) {
+          final blogs = state.filteredBlogs;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Latest Blogs",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ...blogs.map((blog) => _buildBlogCard(context, blog)),
+            ],
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 
   Widget _buildBlogCard(BuildContext context, Blog blog) {
     const String currentUserId = "user1";
-    // Check if current user has liked this blog.
-    final bool isLiked = blog.blogLikes.any((like) => like.userId == currentUserId);
+    final bool isLiked =
+        blog.blogLikes.any((like) => like.userId == currentUserId);
 
     return Card(
       elevation: 2,
@@ -218,7 +232,9 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
                 style: const TextStyle(fontSize: 16, color: Colors.black),
                 children: [
                   TextSpan(
-                    text: blog.author != null ? '${blog.author!.firstName} ${blog.author!.lastName}' : 'Unknown',
+                    text: blog.author != null
+                        ? '${blog.author!.firstName} ${blog.author!.lastName}'
+                        : 'Unknown',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   TextSpan(text: " | ${blog.authorId}"),
@@ -226,16 +242,6 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            // ClipRRect(
-            //   borderRadius: BorderRadius.circular(8),
-            //   child: Image.asset(
-            //     blog.imageUrl,
-            //     height: 180,
-            //     width: double.infinity,
-            //     fit: BoxFit.cover,
-            //   ),
-            // ),
-            // const SizedBox(height: 12),
             Text(
               blog.title,
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
@@ -245,32 +251,20 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
             const SizedBox(height: 16),
             Row(
               children: [
-                OutlinedButton.icon(
+                BlogLikeButton(
+                  isLiked: isLiked,
+                  likeCount: blog.blogLikes.length,
                   onPressed: () {
-                    // Toggle like status.
-                    ref.read(blogNotifierProvider.notifier).toggleLike(blog.blogId, currentUserId);
+                    context.read<BlogBloc>().add(ToggleLike(
+                          blogId: blog.blogId,
+                          userId: currentUserId,
+                        ));
                   },
-                  icon: Icon(
-                    Icons.thumb_up,
-                    color: isLiked ? Colors.red : Colors.grey,
-                  ),
-                  label: Text(
-                    blog.blogLikes.length.toString(),
-                    style: TextStyle(color: isLiked ? Colors.red : Colors.grey),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: isLiked ? Colors.red : Colors.grey),
-                  ),
                 ),
                 const SizedBox(width: 8),
                 OutlinedButton(
                   onPressed: () {
-                    // TODO: Navigate to comments.
-                    Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => CommentsScreen(blog: blog),
-                        ),
-                    );
+                    _showCommentsSheet(context, blog);
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Colors.grey),
@@ -280,7 +274,6 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
                     style: const TextStyle(color: Colors.grey),
                   ),
                 ),
-
               ],
             ),
           ],
@@ -289,7 +282,6 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
     );
   }
 
-  // Inside your BlogScreen widget:
   Widget _buildFloatingActionButton(BuildContext context) {
     return FloatingActionButton(
       onPressed: () {
@@ -301,14 +293,15 @@ class _BlogScreenState extends ConsumerState<BlogScreen> {
     );
   }
 
+  void _showCommentsSheet(BuildContext context, Blog blog) {
+    CommentsBottomSheet.show(context, blog);
+  }
 }
-
-
 
 /// ---------- Expandable Blog Content Widget ----------
 class _ExpandableBlogContent extends StatefulWidget {
   final String content;
-  const _ExpandableBlogContent({Key? key, required this.content}) : super(key: key);
+  const _ExpandableBlogContent({required this.content});
 
   @override
   __ExpandableBlogContentState createState() => __ExpandableBlogContentState();
@@ -316,6 +309,7 @@ class _ExpandableBlogContent extends StatefulWidget {
 
 class __ExpandableBlogContentState extends State<_ExpandableBlogContent> {
   bool _isExpanded = false;
+
   @override
   Widget build(BuildContext context) {
     return Column(

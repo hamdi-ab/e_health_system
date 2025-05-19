@@ -1,4 +1,3 @@
-import 'package:e_health_system/features/auth/Presentation/screens/otp_verification_screen.dart';
 import 'package:e_health_system/features/auth/Presentation/screens/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

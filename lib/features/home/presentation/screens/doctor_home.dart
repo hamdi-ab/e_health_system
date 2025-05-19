@@ -1,204 +1,198 @@
 import 'package:flutter/material.dart';
-
-import '../../../../core/constants/app_colors.dart';
-import '../../../blog/presentation/widgets/expandable_blog_card.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../blog/presentation/bloc/blog_bloc.dart';
+import '../../../blog/presentation/bloc/blog_event.dart';
+import '../../../blog/presentation/bloc/blog_state.dart';
+import '../../../blog/domain/entities/blog.dart';
+import '../widgets/blog_like_button.dart';
+import '../../../blog/presentation/screens/comments_bottom_sheet.dart';
 
 class DoctorHome extends StatelessWidget {
   const DoctorHome({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildWelcomeText(), // Doctor's Welcome
-          const SizedBox(height: 16.0),
-          _buildAppointmentsSummary(), // Appointment Overview
-          const SizedBox(height: 16.0),
-          _buildPatientQueueSection(),
-          _buildBlogPreview(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWelcomeText() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 12.0, horizontal: 6.0),
-      child: Text(
-        "Welcome back, Dr. Hana 👋",
-        style: TextStyle(
-          fontSize: 20.0,
-          fontWeight: FontWeight.bold,
-          color: Colors.black,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAppointmentsSummary() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(child: _appointmentCard("Physical Appointments", 4)),
-            const SizedBox(width: 16),
-            Expanded(child: _appointmentCard("Virtual Appointments", 2)),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _appointmentCard(String type, int count) {
-    return Card(
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12.0)), // Rounded corners
-      elevation: 4.0, // Slight shadow for depth
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center, // Centers content vertically
-          crossAxisAlignment:
-              CrossAxisAlignment.center, // Centers content horizontally
-          children: [
-            Text(
-              "$count",
-              style: const TextStyle(
-                fontSize: 24.0,
-                fontWeight: FontWeight.bold,
-                color: AppColors.primary,
-              ),
-              textAlign: TextAlign.center, // Centers text inside the widget
-            ),
-            const SizedBox(height: 8.0), // Space between count and type
-            Text(
-              type,
-              style: const TextStyle(
-                fontSize: 16.0,
-                color: AppColors.textSecondary,
-              ),
-              textAlign: TextAlign.center, // Centers text
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPatientQueueSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Title Outside Card
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 6),
-          child: Text(
-            "Patient",
-            style: TextStyle(
-                fontSize: 20.0,
-                fontWeight: FontWeight.bold,
-                color: Colors.black),
-          ),
-        ),
-        const SizedBox(height: 12.0), // Space before the card
-
-        _buildPatientQueueCard(), // Patient Card with Actions
-      ],
-    );
-  }
-
-  Widget _buildPatientQueueCard() {
-    return Card(
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-      elevation: 4.0,
-      child: Padding(
+    return BlocProvider(
+      create: (context) => BlogBloc(
+        repository: context.read(),
+      )..add(const LoadBlogs()),
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // First Row: Avatar, Name, and Appointment Time
-            const Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: AppColors.primary,
-                  child: Icon(Icons.person, color: Colors.white),
-                ),
-                SizedBox(width: 12.0),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Abel",
-                        style: TextStyle(
-                          fontSize: 16.0,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      Text(
-                        "Virtual Visit",
-                        style: TextStyle(
-                          fontSize: 14.0,
-                          color: AppColors.textSecondary,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  "3:00 PM",
-                  style: TextStyle(
-                    fontSize: 16.0,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textSecondary,
-                  ),
-                ),
-              ],
+            _buildWelcomeSection(),
+            const SizedBox(height: 16.0),
+            _buildAppointmentsSection(),
+            const SizedBox(height: 16.0),
+            _buildMyBlogsSection(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeSection() {
+    return const Card(
+      child: Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Welcome, Dr. Smith",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            const SizedBox(height: 12.0),
-            // Second Row: Buttons (Start Appointment and Cancel)
+            SizedBox(height: 8),
+            Text(
+              "Here's your schedule for today",
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAppointmentsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Today's Appointments",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Card(
+          child: ListTile(
+            leading: const CircleAvatar(
+              child: Icon(Icons.person),
+            ),
+            title: const Text("John Doe"),
+            subtitle: const Text("10:00 AM - General Checkup"),
+            trailing: ElevatedButton(
+              onPressed: () {},
+              child: const Text("Start"),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMyBlogsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "My Blogs",
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 8),
+        BlocBuilder<BlogBloc, BlogState>(
+          builder: (context, state) {
+            if (state is BlogsLoaded) {
+              final myBlogs = state.blogs
+                  .where((blog) => blog.authorId == "doctor1")
+                  .toList();
+              if (myBlogs.isEmpty) {
+                return const Center(
+                  child: Text("You haven't written any blogs yet"),
+                );
+              }
+              return Column(
+                children: myBlogs
+                    .map((blog) => _buildBlogCard(context, blog))
+                    .toList(),
+              );
+            }
+            return const Center(child: CircularProgressIndicator());
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBlogCard(BuildContext context, Blog blog) {
+    const String currentUserId = "doctor1"; // Replace with actual doctor ID
+    final bool isLiked =
+        blog.blogLikes.any((like) => like.userId == currentUserId);
+
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "by ${blog.author != null ? '${blog.author!.firstName} ${blog.author!.lastName}' : 'Unknown'} | ${blog.authorId}",
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              blog.title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            _ExpandableBlogContent(content: blog.summary),
+            const SizedBox(height: 12),
             Row(
               children: [
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+                BlogLikeButton(
+                  isLiked: isLiked,
+                  likeCount: blog.blogLikes.length,
+                  onPressed: () {
+                    context.read<BlogBloc>().add(ToggleLike(
+                          blogId: blog.blogId,
+                          userId: currentUserId,
+                        ));
+                  },
+                ),
+                const SizedBox(width: 8),
+                OutlinedButton(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => CommentsScreen(blog: blog),
                       ),
-                    ),
-                    child: const Text(
-                      "Start Appointment",
-                      style: TextStyle(color: Colors.white),
-                    ),
+                    );
+                  },
+                  style: OutlinedButton.styleFrom(
+                    side: const BorderSide(color: Colors.grey),
+                  ),
+                  child: Text(
+                    "💬 Comments ${blog.blogComments.length}",
+                    style: const TextStyle(color: Colors.grey),
                   ),
                 ),
-                const SizedBox(width: 12.0),
-                Expanded(
-                  flex: 1,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                    ),
-                    child: const Text(
-                      "Cancel",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    // Navigate to edit blog
+                  },
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () {
+                    // Delete blog
+                  },
                 ),
               ],
             ),
@@ -207,44 +201,49 @@ class DoctorHome extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildBlogPreview() {
+class _ExpandableBlogContent extends StatefulWidget {
+  final String content;
+  const _ExpandableBlogContent({required this.content});
+
+  @override
+  __ExpandableBlogContentState createState() => __ExpandableBlogContentState();
+}
+
+class __ExpandableBlogContentState extends State<_ExpandableBlogContent> {
+  bool _isExpanded = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8.0, vertical: 14),
-          child: Text("My Blogs",
-              style: TextStyle(
-                  fontSize: 20.0,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black)),
+        Text(
+          widget.content,
+          style: const TextStyle(fontSize: 14),
+          maxLines: _isExpanded ? null : 2,
+          overflow: _isExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
         ),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {},
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _isExpanded = !_isExpanded;
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.only(top: 4.0),
+            child: Text(
+              _isExpanded ? "Show Less" : "See More",
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
               ),
             ),
-            child: const Text("Write a new post",
-                style: TextStyle(color: Colors.white, fontSize: 18)),
           ),
         ),
-        const SizedBox(height: 8.0),
-        _blogPost("Managing patient records efficiently"),
-        _blogPost("Best practices in online consultations"),
       ],
     );
   }
-
-  Widget _blogPost(String title) {
-    return ExpandableBlogCard(title: title);
-  }
 }
-
-
-

@@ -1,40 +1,73 @@
+import 'package:e_health_system/features/notification/domain/repositories/notification_repository.dart';
+import 'package:e_health_system/features/notification/domain/entities/notification.dart'
+    as notic;
+import 'package:e_health_system/shared/enums/notification_type.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'bloc/notification_bloc.dart';
+import 'bloc/notification_event.dart';
+import 'bloc/notification_state.dart';
 
 class NotificationScreen extends StatelessWidget {
   final bool isDoctor;
-  const NotificationScreen({super.key, required this.isDoctor});
+  final String userId;
+
+  const NotificationScreen({
+    super.key,
+    required this.isDoctor,
+    required this.userId,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Header with a back arrow and "Mark all as read"
-      appBar: _buildAppBar(context),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionTitle("Appointments"),
-            _buildAppointmentsSection(context),
-            const SizedBox(height: 16),
-            _buildSectionTitle("Messages"),
-            _buildMessagesSection(context),
-            const SizedBox(height: 16),
-            _buildSectionTitle("Blog & Social"),
-            _buildBlogSocialSection(context),
-            const SizedBox(height: 16),
-            _buildSectionTitle("Payments"),
-            _buildPaymentsSection(context),
-            const SizedBox(height: 16),
-            _buildSectionTitle("System"),
-            _buildSystemSection(context),
-          ],
+    return BlocProvider(
+      create: (context) {
+        final repository = context.read<NotificationRepository>();
+        return NotificationBloc(repository: repository)
+          ..add(LoadNotifications(userId: userId));
+      },
+      child: Scaffold(
+        appBar: _buildAppBar(context),
+        body: BlocBuilder<NotificationBloc, NotificationState>(
+          builder: (context, state) {
+            if (state is NotificationLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state is NotificationError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Error: ${state.message}',
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<NotificationBloc>().add(
+                          LoadNotifications(userId: userId),
+                        );
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            if (state is NotificationsLoaded) {
+              return _buildNotificationList(context, state);
+            }
+
+            return const Center(child: Text('No notifications'));
+          },
         ),
       ),
     );
   }
 
-  // AppBar that shows a back arrow and "Mark all as read" action.
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Theme.of(context).primaryColor,
@@ -43,228 +76,141 @@ class NotificationScreen extends StatelessWidget {
         style: TextStyle(color: Colors.white),
       ),
       actions: [
-        TextButton(
-          onPressed: () {
-            // Replace with your mark-all-as-read logic
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("All notifications marked as read")),
-            );
+        BlocBuilder<NotificationBloc, NotificationState>(
+          builder: (context, state) {
+            if (state is NotificationsLoaded && state.unreadCount > 0) {
+              return TextButton(
+                onPressed: () {
+                  context.read<NotificationBloc>().add(
+                        MarkAllNotificationsAsRead(userId: userId),
+                      );
+                },
+                child: const Text(
+                  "Mark all as read",
+                  style: TextStyle(color: Colors.white),
+                ),
+              );
+            }
+            return const SizedBox.shrink();
           },
-          child: const Text(
-            "Mark all as read",
-            style: TextStyle(color: Colors.white),
-          ),
         ),
       ],
     );
   }
 
-  // Section Title Widget
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Text(title,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+  Widget _buildNotificationList(
+      BuildContext context, NotificationsLoaded state) {
+    if (state.notifications.isEmpty) {
+      return const Center(child: Text('No notifications yet'));
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: state.notifications.length,
+      itemBuilder: (context, index) {
+        final notification = state.notifications[index];
+        return _buildNotificationCard(context, notification);
+      },
     );
   }
 
-  // Generic Notification Card Builder.
-  Widget _buildNotificationCard({
-    required BuildContext context,
-    required IconData icon,
-    required String title,
-    required String message,
-    required String time,
-    required List<Widget> actions,
-  }) {
+  Widget _buildNotificationCard(
+      BuildContext context, notic.Notification notification) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Row: Icon, title/message and time stamp.
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(icon, size: 28),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title,
-                          style: const TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 4),
-                      Text(message, style: const TextStyle(fontSize: 14)),
-                    ],
-                  ),
-                ),
-                Text(time,
-                    style:
-                    const TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Actions Row (right aligned)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: actions,
+      child: ListTile(
+        leading: _getNotificationIcon(notification.notificationType),
+        title: Text(
+          notification.message,
+          style: TextStyle(
+            fontWeight:
+                notification.isRead ? FontWeight.normal : FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(_getTimeAgo(notification.timestamp)),
+        trailing: PopupMenuButton<String>(
+          onSelected: (value) =>
+              _handleNotificationAction(context, value, notification),
+          itemBuilder: (context) => [
+            if (!notification.isRead)
+              const PopupMenuItem(
+                value: 'mark_read',
+                child: Text('Mark as read'),
+              ),
+            const PopupMenuItem(
+              value: 'delete',
+              child: Text('Delete'),
             ),
           ],
         ),
+        onTap: () => _handleNotificationTap(context, notification),
       ),
     );
   }
 
-  // Appointments Section
-  Widget _buildAppointmentsSection(BuildContext context) {
-    return Column(
-      children: [
-        // New Booking Notification
-        _buildNotificationCard(
-          context: context,
-          icon: Icons.calendar_today,
-          title: "New Booking",
-          message: isDoctor
-              ? "2 new requests pending approval."
-              : "Your booking request is pending approval.",
-          time: "5 min ago",
-          actions: isDoctor
-              ? [
-            TextButton(
-              onPressed: () {
-                // View Queue for doctor
-              },
-              child: const Text("View Queue"),
-            ),
-            const SizedBox(width: 8),
-            TextButton(
-              onPressed: () {
-                // Decline All for doctor
-              },
-              child: const Text("Decline All"),
-            ),
-          ]
-              : [
-            TextButton(
-              onPressed: () {
-                // Patient view: View Details action
-              },
-              child: const Text("View Details"),
-            ),
-          ],
-        ),
-        // Patient Check-In Notification
-        _buildNotificationCard(
-          context: context,
-          icon: Icons.check_circle,
-          title: "Patient Check-In",
-          message: isDoctor
-              ? "Abel has checked in for 9:00 AM."
-              : "You have successfully checked in for your appointment.",
-          time: "10 min ago",
-          actions: isDoctor
-              ? [
-            TextButton(
-              onPressed: () {
-                // Doctor: View Patient action
-              },
-              child: const Text("View Patient"),
-            ),
-          ]
-              : [
-            TextButton(
-              onPressed: () {
-                // Patient: View Appointment action
-              },
-              child: const Text("View Appointment"),
-            ),
-          ],
-        ),
-      ],
-    );
+  Icon _getNotificationIcon(NotificationType type) {
+    switch (type) {
+      case NotificationType.AppointmentReminder:
+        return const Icon(Icons.calendar_today);
+      case NotificationType.MessageReceived:
+        return const Icon(Icons.message);
+      case NotificationType.PaymentConfirmation:
+        return const Icon(Icons.payment);
+      case NotificationType.SystemUpdate:
+        return const Icon(Icons.system_update);
+      default:
+        return const Icon(Icons.notifications);
+    }
   }
 
-  // Messages Section remains the same.
-  Widget _buildMessagesSection(BuildContext context) {
-    return _buildNotificationCard(
-      context: context,
-      icon: Icons.chat,
-      title: "Chat Message",
-      message: "New message from Yonas.",
-      time: "1 hr ago",
-      actions: [
-        TextButton(
-          onPressed: () {
-            // TODO: Reply action.
-          },
-          child: const Text("Reply"),
-        ),
-      ],
-    );
+  String _getTimeAgo(DateTime timestamp) {
+    final now = DateTime.now();
+    final difference = now.difference(timestamp);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays} days ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} hours ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} minutes ago';
+    } else {
+      return 'Just now';
+    }
   }
 
-  // Blog & Social Section with conditional text for doctor vs patient.
-  Widget _buildBlogSocialSection(BuildContext context) {
-    return _buildNotificationCard(
-      context: context,
-      icon: Icons.comment, // Using a comment icon
-      title: isDoctor ? "Comment" : "Comment Reaction",
-      message: isDoctor
-          ? "Selam commented on your blog."
-          : "Your comment was liked by Selam.",
-      time: "Yesterday",
-      actions: [
-        TextButton(
-          onPressed: () {
-            // For doctor: View Blog, for patient: View Comment
-          },
-          child: Text(isDoctor ? "View Blog" : "View Comment"),
-        ),
-      ],
-    );
+  void _handleNotificationAction(
+      BuildContext context, String action, notic.Notification notification) {
+    switch (action) {
+      case 'mark_read':
+        context.read<NotificationBloc>().add(
+              MarkNotificationAsRead(
+                  notificationId: notification.notificationId),
+            );
+        break;
+      case 'delete':
+        context.read<NotificationBloc>().add(
+              DeleteNotification(notificationId: notification.notificationId),
+            );
+        break;
+    }
   }
 
-  // Payments Section with conditional content.
-  Widget _buildPaymentsSection(BuildContext context) {
-    return _buildNotificationCard(
-      context: context,
-      icon: Icons.credit_card,
-      title: isDoctor ? "Payment Received" : "Payment Made",
-      message: isDoctor
-          ? "500 ETB received for April 29."
-          : "500 ETB paid on April 29.",
-      time: "Apr 29, 2025",
-      actions: [
-        TextButton(
-          onPressed: () {
-            // TODO: View History action.
-          },
-          child: const Text("View History"),
-        ),
-      ],
-    );
-  }
-
-  // System Section remains unchanged.
-  Widget _buildSystemSection(BuildContext context) {
-    return _buildNotificationCard(
-      context: context,
-      icon: Icons.settings,
-      title: "Maintenance",
-      message: "Scheduled tonight at 12:00 AM.",
-      time: "2 days ago",
-      actions: [
-        TextButton(
-          onPressed: () {
-            // TODO: Details action.
-          },
-          child: const Text("Details"),
-        ),
-      ],
-    );
+  void _handleNotificationTap(
+      BuildContext context, notic.Notification notification) {
+    // TODO: Implement navigation based on notification type
+    switch (notification.notificationType) {
+      case NotificationType.AppointmentReminder:
+        // Navigate to appointment details
+        break;
+      case NotificationType.MessageReceived:
+        // Navigate to chat
+        break;
+      case NotificationType.PaymentConfirmation:
+        // Navigate to payment details
+        break;
+      case NotificationType.SystemUpdate:
+        // Show system update details
+        break;
+    }
   }
 }

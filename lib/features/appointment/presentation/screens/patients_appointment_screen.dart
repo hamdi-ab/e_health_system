@@ -8,7 +8,6 @@ import 'package:e_health_system/features/home/presentation/bloc/speciality_state
 import 'package:e_health_system/features/search/presentation/blocs/doctor_bloc.dart';
 import 'package:e_health_system/features/search/presentation/blocs/doctor_event.dart';
 import 'package:e_health_system/features/search/presentation/blocs/doctor_state.dart';
-import 'package:e_health_system/models/doctor.dart';
 import 'package:e_health_system/models/speciality.dart';
 import 'package:e_health_system/shared/enums/appointment_type.dart';
 import 'package:flutter/material.dart';
@@ -512,8 +511,7 @@ class _PatientsAppointmentScreenState extends State<PatientsAppointmentScreen> {
                   const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             ),
             items: state.doctors.map((doctor) {
-              // ✅ Added safe null check for doctor.user
-              final doctorName = doctor.user?.firstName ?? doctor.doctorId;
+              final doctorName = doctor.user.firstName ?? doctor.doctorId;
               return DropdownMenuItem<String>(
                 value: doctor.doctorId,
                 child: Text(doctorName),

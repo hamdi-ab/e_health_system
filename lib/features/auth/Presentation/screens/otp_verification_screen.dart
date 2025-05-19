@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../widgets/otp_success_modal.dart';
 
 class OtpVerificationScreen extends StatefulWidget {
-  const OtpVerificationScreen({Key? key}) : super(key: key);
+  const OtpVerificationScreen({super.key});
 
   @override
   _OtpVerificationScreenState createState() => _OtpVerificationScreenState();
@@ -46,7 +46,7 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
       width: 60,
       height: 80, // Increased height
       child: TextField(
-        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 24),
         controller: controller,
         focusNode: focusNode, // Attach the focus node.
         keyboardType: TextInputType.number,
